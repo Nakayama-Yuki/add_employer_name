@@ -8,18 +8,20 @@ enum Command {
     },
     ListDepartment(String),
     ListAll,
-    Help,
     Exit,
 }
 
 fn main() {
     let mut departments: HashMap<String, Vec<String>> = HashMap::new();
+    add_employee(&mut departments, "Engineering", "Sally");
+    add_employee(&mut departments, "Sales", "Ava");
+    add_employee(&mut departments, "Marketing", "Noah");
 
-    print_help();
+    println!("コマンドを入力してください。例: Add Sally to Engineering");
 
     loop {
         println!();
-        println!("コマンドを入力してください:");
+        println!("利用可能: Add <名前> to <部署> / List <部署> / List All / Exit");
 
         let mut input = String::new();
         io::stdin()
@@ -43,7 +45,6 @@ fn main() {
             Ok(Command::ListAll) => {
                 println!("{}", format_all_departments_listing(&departments));
             }
-            Ok(Command::Help) => print_help(),
             Ok(Command::Exit) => break,
             Err(message) => println!("{message}"),
         }
@@ -54,11 +55,9 @@ fn parse_command(input: &str) -> Result<Command, String> {
     let trimmed = input.trim();
 
     if trimmed.is_empty() {
-        return Err("コマンドが空です。Help と入力して使い方を表示できます。".to_string());
-    }
-
-    if trimmed.eq_ignore_ascii_case("help") {
-        return Ok(Command::Help);
+        return Err(
+            "コマンドが空です。Add / List / Exit のいずれかを入力してください。".to_string(),
+        );
     }
 
     if trimmed.eq_ignore_ascii_case("exit") {
@@ -101,7 +100,7 @@ fn parse_command(input: &str) -> Result<Command, String> {
         return Err("追加は `Add Sally to Engineering` の形式で入力してください。".to_string());
     }
 
-    Err("不明なコマンドです。Help と入力して使い方を確認してください。".to_string())
+    Err("不明なコマンドです".to_string())
 }
 
 fn has_ascii_prefix(input: &str, prefix: &str) -> bool {
@@ -177,13 +176,4 @@ fn format_all_departments_listing(departments: &HashMap<String, Vec<String>>) ->
         })
         .collect::<Vec<_>>()
         .join("\n")
-}
-
-fn print_help() {
-    println!("利用できるコマンド:");
-    println!("  Add Sally to Engineering");
-    println!("  List Engineering");
-    println!("  List All");
-    println!("  Help");
-    println!("  Exit");
 }
