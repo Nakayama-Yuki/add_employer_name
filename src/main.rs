@@ -60,16 +60,16 @@ fn parse_command(input: &str) -> Result<Command, String> {
         );
     }
 
-    if trimmed.eq_ignore_ascii_case("exit") {
+    if trimmed == "Exit" {
         return Ok(Command::Exit);
     }
 
-    if trimmed.eq_ignore_ascii_case("list all") {
+    if trimmed == "List All" {
         return Ok(Command::ListAll);
     }
 
-    if has_ascii_prefix(trimmed, "list ") {
-        let department = trimmed[5..].trim();
+    if let Some(department) = trimmed.strip_prefix("List ") {
+        let department = department.trim();
         if department.is_empty() {
             return Err(
                 "部署一覧は `List Engineering` のように部署名を指定してください。".to_string(),
@@ -79,9 +79,9 @@ fn parse_command(input: &str) -> Result<Command, String> {
         return Ok(Command::ListDepartment(department.to_string()));
     }
 
-    if has_ascii_prefix(trimmed, "add ") {
-        let rest = trimmed[4..].trim();
-        if let Some(separator_index) = find_ascii_case_insensitive(rest, " to ") {
+    if let Some(rest) = trimmed.strip_prefix("Add ") {
+        let rest = rest.trim();
+        if let Some(separator_index) = rest.find(" to ") {
             let employee = rest[..separator_index].trim();
             let department = rest[separator_index + 4..].trim();
 
@@ -101,27 +101,6 @@ fn parse_command(input: &str) -> Result<Command, String> {
     }
 
     Err("不明なコマンドです".to_string())
-}
-
-fn has_ascii_prefix(input: &str, prefix: &str) -> bool {
-    input
-        .get(..prefix.len())
-        .is_some_and(|part| part.eq_ignore_ascii_case(prefix))
-}
-
-fn find_ascii_case_insensitive(haystack: &str, needle: &str) -> Option<usize> {
-    haystack.char_indices().find_map(|(start, _)| {
-        let end = start + needle.len();
-        if haystack.is_char_boundary(end)
-            && haystack
-                .get(start..end)
-                .is_some_and(|part| part.eq_ignore_ascii_case(needle))
-        {
-            Some(start)
-        } else {
-            None
-        }
-    })
 }
 
 fn add_employee(departments: &mut HashMap<String, Vec<String>>, department: &str, employee: &str) {
